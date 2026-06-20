@@ -187,6 +187,10 @@ function App() {
   // Readings
   const [pitchDeg, setPitchDeg]           = useState(0);
   const [rollDeg, setRollDeg]             = useState(0);
+  // Local app-side tare offset -- applied instantly on display, independent of
+  // firmware's TAR ADD semantics. Guarantees Tare always zeroes the display immediately.
+  const localPitchOffsetRef = React.useRef(0);
+  const localRollOffsetRef  = React.useRef(0);
 
   // Two independent demo modes:
   // simActive = auto-sweep sine wave (play button) - bubble moves automatically
@@ -306,13 +310,16 @@ function App() {
       emaPitchRef.current = EMA_ALPHA * rp + (1 - EMA_ALPHA) * emaPitchRef.current;
       emaRollRef.current  = EMA_ALPHA * rr + (1 - EMA_ALPHA) * emaRollRef.current;
     }
-    setPitchDeg(parseFloat(emaPitchRef.current.toFixed(2)));
-    setRollDeg(parseFloat(emaRollRef.current.toFixed(2)));
+    const correctedPitch = emaPitchRef.current - localPitchOffsetRef.current;
+    const correctedRoll  = emaRollRef.current  - localRollOffsetRef.current;
+    setPitchDeg(parseFloat(correctedPitch.toFixed(2)));
+    setRollDeg(parseFloat(correctedRoll.toFixed(2)));
   }, []);
 
   const onDisconnected = useCallback(() => {
     setIsConnected(false); setIsLevel(false); wasLevelRef.current = false;
     txCharRef.current = null; emaPitchRef.current = null; emaRollRef.current = null;
+    localPitchOffsetRef.current = 0; localRollOffsetRef.current = 0;
     toast('Disconnected from device');
   }, [toast]);
 
@@ -730,8 +737,20 @@ function App() {
         // ── Tare ──
         h('button', {
           onClick: () => {
-            if (isConnected) sendCommand(`TAR:${pitchDeg.toFixed(2)},${rollDeg.toFixed(2)}`);
-            toast(isConnected ? 'Tare sent to device' : 'Not connected — tare not applied');
+            if (isConnected) {
+              // Instantly zero the display: add current displayed reading to local offset.
+              // This guarantees Tare always shows 0.00 immediately, regardless of
+              // firmware round-trip timing or the firmware's own ADD-based offset.
+              localPitchOffsetRef.current += pitchDeg;
+              localRollOffsetRef.current  += rollDeg;
+              setPitchDeg(0);
+              setRollDeg(0);
+              // Also tell firmware so standalone (no-BLE) mode stays correctly tared
+              sendCommand(`TAR:${pitchDeg.toFixed(2)},${rollDeg.toFixed(2)}`);
+              toast('Tared — display zeroed');
+            } else {
+              toast('Not connected — tare not applied');
+            }
           },
           className: 'w-full py-3 rounded-xl border text-sm font-medium transition-all bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
         }, 'Tare to Current Position'),
