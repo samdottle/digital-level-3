@@ -107,10 +107,10 @@ function SlopeCalculator() {
     if (isNaN(v)) return null;
     if (calcMode === 'deg') {
       const riseIn = Math.tan(Math.abs(v) * Math.PI / 180) * 120;
-      return { riseIn, riseMm: riseIn * 25.4, pct: Math.tan(Math.abs(v) * Math.PI / 180) * 100 };
+      return { riseIn, pct: Math.tan(Math.abs(v) * Math.PI / 180) * 100 };
     } else {
       const riseIn = Math.abs(v) * 10;
-      return { deg: Math.atan(Math.abs(v) / 12) * 180 / Math.PI, riseIn, riseMm: riseIn * 25.4, pct: (Math.abs(v) / 12) * 100 };
+      return { deg: Math.atan(Math.abs(v) / 12) * 180 / Math.PI, riseIn, pct: (Math.abs(v) / 12) * 100 };
     }
   }, [calcInput, calcMode]);
 
@@ -153,7 +153,6 @@ function SlopeCalculator() {
           h('div', { key:'rise', className: 'p-2.5 rounded-lg bg-slate-800/60 text-center' },
             h('p', { className: 'text-xs text-slate-500 mb-1' }, 'Rise over 10 ft'),
             h('p', { className: 'text-sm font-mono font-semibold text-teal-300' }, `${result.riseIn.toFixed(3)}"`),
-            h('p', { className: 'text-xs text-slate-600' }, `${result.riseMm.toFixed(1)} mm`)
           ),
           h('div', { key:'grade', className: 'p-2.5 rounded-lg bg-slate-800/60 text-center' },
             h('p', { className: 'text-xs text-slate-500 mb-1' }, 'Grade'),
@@ -166,8 +165,7 @@ function SlopeCalculator() {
           ),
           h('div', { key:'rise', className: 'p-2.5 rounded-lg bg-slate-800/60 text-center' },
             h('p', { className: 'text-xs text-slate-500 mb-1' }, 'Rise over 10 ft'),
-            h('p', { className: 'text-sm font-mono font-semibold text-teal-300' }, `${result.riseIn.toFixed(3)}"`),
-            h('p', { className: 'text-xs text-slate-600' }, `${result.riseMm.toFixed(1)} mm`)
+            h('p', { className: 'text-sm font-mono font-semibold text-teal-300' }, `${result.riseIn.toFixed(3)}"`)
           )
         ]
       )
@@ -496,7 +494,6 @@ function App() {
 
   // 10-ft projection
   const riseIn = Math.tan(Math.abs(displayPitch) * Math.PI / 180) * 120;
-  const riseMm = riseIn * 25.4;
   const riseDir = displayPitch > 0 ? 'rise' : displayPitch < 0 ? 'drop' : 'level';
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -513,7 +510,7 @@ function App() {
             ),
             h('div', null,
               h('h1', { className: 'text-sm font-semibold text-white leading-none' }, 'Digital Level 3'),
-              h('p', { className: 'text-xs text-slate-500 leading-none mt-0.5' }, 'ADXL355 · ESP32 · BLE')
+              h('p', { className: 'text-xs text-slate-500 leading-none mt-0.5' }, 'ADXL355 · ESP32 · BLE · v1.3')
             )
           ),
           // Connection indicator
@@ -594,7 +591,7 @@ function App() {
           h('div', { className: 'mt-3 flex items-center justify-between gap-2 px-4 py-2.5 rounded-xl bg-slate-800/70 border border-slate-700' },
             h('span', { className: 'text-xs text-slate-400' }, 'Over 10 ft:'),
             h('span', { className: `text-sm font-mono font-semibold ${pitchClass(displayPitch)}` }, `${riseIn.toFixed(3)}"`),
-            h('span', { className: 'text-xs text-slate-600' }, `(${riseMm.toFixed(1)} mm)`),
+
             h('span', { className: 'text-xs text-slate-500' }, riseDir)
           ),
 
@@ -854,7 +851,7 @@ function App() {
         h('div', { className:'text-center text-xs text-slate-600 pt-2 pb-4 space-y-1' },
           h('p', null, 'Arduino Nano ESP32 + ADXL355 · BLE Nordic UART'),
           h('p', null, 'Advertise as "Level" in your Arduino sketch'),
-          h('p', { className:'text-slate-700 mt-2' }, '© Digital Level 3')
+          h('p', { className:'text-slate-700 mt-2' }, '© Digital Level 3 · v1.3')
         )
       )
     ),
